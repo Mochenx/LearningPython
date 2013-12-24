@@ -87,6 +87,48 @@ def bubble_sort(_sort_A,a_go_first = lambda a,b: a>b):
 
 
 ###################################################
+#Heap Sort
+def heapify_b2t_iter(_heap_A,a_go_first = lambda a,b: a>b):
+    def disp_in_tree(tree2disp):
+        whole_tree = ""
+        tree = []
+        cur_layer = []
+        nxt_layer_end_cnt = 0
+        for i,v in enumerate(tree2disp):
+            cur_layer.append(v)
+            if i == nxt_layer_end_cnt:
+                nxt_layer_end_cnt = i*2+2
+                tree.append(cur_layer)
+                cur_layer = []
+        space_cnt = 0
+        for i,vln in enumerate(tree):
+            curr_layer = ""
+            for v in vln:
+                curr_layer = curr_layer + ("%3d" %  v)
+                curr_layer = curr_layer + " "* 3*interval
+            #curr_layer += "\n"
+            curr_layer = " "*3*pre_itvl + curr_layer 
+            print(curr_layer)
+                
+    for i in reversed(range((len(_heap_A)-2)//2+1)):
+        disp_in_tree(_heap_A)
+        nxt_root = i
+        while nxt_root < len(_heap_A):
+            k = nxt_root
+            for j in range(1,3):
+                if 2*k+j >= len(_heap_A):
+                    nxt_root = len(_heap_A) # To terminate the outter while loop
+                    break
+                if not a_go_first(_heap_A[k],_heap_A[2*k+j]):
+                    _heap_A[k],_heap_A[2*k+j] = _heap_A[2*k+j],_heap_A[k]
+                    nxt_root = 2*k+j
+            if nxt_root == k:
+                nxt_root = len(_heap_A)
+        print("------------------------------------------")
+        disp_in_tree(_heap_A)
+        print("------------------------------------------")
+
+###################################################
 #Starting the test program
 def test_bench(sort_table,sel,swap_method):
     sort_A = [randrange(0,40,1) for x in range(23)]
@@ -108,9 +150,10 @@ sort_table={"insert":insert_sort,
             "merge_t2b":top_down_merge_sort,
             "merge_b2t":down_top_merge_sort,
             "selection":selection_sort,
+            "heapsort":heapify_b2t_iter,
             "bubble":bubble_sort}
 parser = argparse.ArgumentParser(description = "A Python script implementing lots of sorting algorithm") 
-parser.add_argument('sort_algorithm',choices=["insert","merge_t2b","merge_b2t","selection","bubble"],help = "available sorting methords")
+parser.add_argument('sort_algorithm',choices=["insert","merge_t2b","merge_b2t","selection","heapsort","bubble"],help = "available sorting methords")
 parser.add_argument('--direction','-d',choices=["ascend","descend"],help="the direction of sorting result")
 args = parser.parse_args()
 test_bench(sort_table,args.sort_algorithm,swap_method[args.direction])
