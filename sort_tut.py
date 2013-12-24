@@ -115,6 +115,7 @@ def heapify_b2t_iter(_heap_A,a_go_first = lambda a,b: a>b):
             curr_layer += "\n"
             print(curr_layer)
                 
+    print("-"*70)
     disp_in_tree(_heap_A)
     for i in reversed(range((len(_heap_A)-2)//2+1)):
         nxt_root = i
@@ -130,8 +131,14 @@ def heapify_b2t_iter(_heap_A,a_go_first = lambda a,b: a>b):
                 nxt_root = len(_heap_A)
             else:
                 _heap_A[k],_heap_A[nxt_root] = _heap_A[nxt_root],_heap_A[k]
-    print("===========================================")
+    print("="*30)
+    for i,v in enumerate(_heap_A):
+        for j in range(1,3):
+            if (i*2+j) < len(_heap_A) and not a_go_first(_heap_A[i],_heap_A[2*i+j]):
+                if not _heap_A[i] == _heap_A[2*i+j]:
+                    print("Heap rule violation at root:%3d[%0d] & leaf:%3d[%0d]"% (_heap_A[i],i,_heap_A[2*i+j],2*i+j))
     disp_in_tree(_heap_A)
+    print("-"*70)
 
 ###################################################
 #Starting the test program
