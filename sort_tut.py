@@ -96,22 +96,27 @@ def heapify_b2t_iter(_heap_A,a_go_first = lambda a,b: a>b):
         nxt_layer_end_cnt = 0
         for i,v in enumerate(tree2disp):
             cur_layer.append(v)
-            if i == nxt_layer_end_cnt:
+            if i == nxt_layer_end_cnt or i == len(tree2disp)-1:
                 nxt_layer_end_cnt = i*2+2
                 tree.append(cur_layer)
                 cur_layer = []
         space_cnt = 0
+        layer = len(tree)
+        bottom_width = 2**layer
         for i,vln in enumerate(tree):
-            curr_layer = ""
-            for v in vln:
+            space = " "*3*((bottom_width-1) // (2**i))
+            curr_layer  = " "*3*((bottom_width-1) // (2**i) //2)
+            #print(space)
+            #print(curr_layer)
+            for i,v in enumerate(vln):
                 curr_layer = curr_layer + ("%3d" %  v)
-                curr_layer = curr_layer + " "* 3*interval
-            #curr_layer += "\n"
-            curr_layer = " "*3*pre_itvl + curr_layer 
+                if i< len(vln) - 1:
+                    curr_layer = curr_layer + space
+            curr_layer += "\n"
             print(curr_layer)
                 
+    disp_in_tree(_heap_A)
     for i in reversed(range((len(_heap_A)-2)//2+1)):
-        disp_in_tree(_heap_A)
         nxt_root = i
         while nxt_root < len(_heap_A):
             k = nxt_root
@@ -119,14 +124,14 @@ def heapify_b2t_iter(_heap_A,a_go_first = lambda a,b: a>b):
                 if 2*k+j >= len(_heap_A):
                     nxt_root = len(_heap_A) # To terminate the outter while loop
                     break
-                if not a_go_first(_heap_A[k],_heap_A[2*k+j]):
-                    _heap_A[k],_heap_A[2*k+j] = _heap_A[2*k+j],_heap_A[k]
+                if not a_go_first(_heap_A[nxt_root],_heap_A[2*k+j]):
                     nxt_root = 2*k+j
-            if nxt_root == k:
+            if nxt_root == k or nxt_root == len(_heap_A):
                 nxt_root = len(_heap_A)
-        print("------------------------------------------")
-        disp_in_tree(_heap_A)
-        print("------------------------------------------")
+            else:
+                _heap_A[k],_heap_A[nxt_root] = _heap_A[nxt_root],_heap_A[k]
+    print("===========================================")
+    disp_in_tree(_heap_A)
 
 ###################################################
 #Starting the test program
