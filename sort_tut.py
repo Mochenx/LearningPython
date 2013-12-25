@@ -88,35 +88,43 @@ def bubble_sort(_sort_A,a_go_first = lambda a,b: a>b):
 
 ###################################################
 #Heap Sort
+def disp_in_tree(tree2disp):
+    whole_tree = ""
+    tree = []
+    cur_layer = []
+    nxt_layer_end_cnt = 0
+    for i,v in enumerate(tree2disp):
+        cur_layer.append(v)
+        if i == nxt_layer_end_cnt or i == len(tree2disp)-1:
+            nxt_layer_end_cnt = i*2+2
+            tree.append(cur_layer)
+            cur_layer = []
+    space_cnt = 0
+    layer = len(tree)
+    bottom_width = 2**layer
+    for i,vln in enumerate(tree):
+        space = " "*3*((bottom_width-1) // (2**i))
+        curr_layer  = " "*3*((bottom_width-1) // (2**i) //2)
+        #print(space)
+        #print(curr_layer)
+        for i,v in enumerate(vln):
+            curr_layer = curr_layer + ("%3d" %  v)
+            if i< len(vln) - 1:
+                curr_layer = curr_layer + space
+        curr_layer += "\n"
+        print(curr_layer)
+
+def chk_heapify(_heap_A,a_go_first = lambda a,b: a>b):
+    for i,v in enumerate(_heap_A):
+        for j in range(1,3):
+            if (i*2+j) < len(_heap_A) and not a_go_first(_heap_A[i],_heap_A[2*i+j]):
+                if not _heap_A[i] == _heap_A[2*i+j]:
+                    print("Heap rule violation at root:%3d[%0d] & leaf:%3d[%0d]"% (_heap_A[i],i,_heap_A[2*i+j],2*i+j))
+
 def heapify_b2t_iter(_heap_A,a_go_first = lambda a,b: a>b):
-    def disp_in_tree(tree2disp):
-        whole_tree = ""
-        tree = []
-        cur_layer = []
-        nxt_layer_end_cnt = 0
-        for i,v in enumerate(tree2disp):
-            cur_layer.append(v)
-            if i == nxt_layer_end_cnt or i == len(tree2disp)-1:
-                nxt_layer_end_cnt = i*2+2
-                tree.append(cur_layer)
-                cur_layer = []
-        space_cnt = 0
-        layer = len(tree)
-        bottom_width = 2**layer
-        for i,vln in enumerate(tree):
-            space = " "*3*((bottom_width-1) // (2**i))
-            curr_layer  = " "*3*((bottom_width-1) // (2**i) //2)
-            #print(space)
-            #print(curr_layer)
-            for i,v in enumerate(vln):
-                curr_layer = curr_layer + ("%3d" %  v)
-                if i< len(vln) - 1:
-                    curr_layer = curr_layer + space
-            curr_layer += "\n"
-            print(curr_layer)
                 
-    print("-"*70)
-    disp_in_tree(_heap_A)
+    #print("-"*70)
+    #disp_in_tree(_heap_A)
     for i in reversed(range((len(_heap_A)-2)//2+1)):
         nxt_root = i
         while nxt_root < len(_heap_A):
@@ -131,15 +139,27 @@ def heapify_b2t_iter(_heap_A,a_go_first = lambda a,b: a>b):
                 nxt_root = len(_heap_A)
             else:
                 _heap_A[k],_heap_A[nxt_root] = _heap_A[nxt_root],_heap_A[k]
-    print("="*30)
-    for i,v in enumerate(_heap_A):
-        for j in range(1,3):
-            if (i*2+j) < len(_heap_A) and not a_go_first(_heap_A[i],_heap_A[2*i+j]):
-                if not _heap_A[i] == _heap_A[2*i+j]:
-                    print("Heap rule violation at root:%3d[%0d] & leaf:%3d[%0d]"% (_heap_A[i],i,_heap_A[2*i+j],2*i+j))
-    disp_in_tree(_heap_A)
-    print("-"*70)
+    #print("="*30)
+    #disp_in_tree(_heap_A)
+    #print("-"*70)
+    chk_heapify(_heap_A,a_go_first)
 
+def heapify_t2b_iter(_heap_A,a_go_first = lambda a,b: a>b):
+    #print("-"*70)
+    #disp_in_tree(_heap_A)
+    for i in range(1,len(_heap_A)):
+        root = (i-1)//2
+        leaf = i
+        while root >= 0:
+            if not a_go_first(_heap_A[root],_heap_A[leaf]):
+                _heap_A[leaf],_heap_A[root] = _heap_A[root],_heap_A[leaf]
+                leaf,root = root,(root-1)//2
+            else:
+                break
+    #print("="*30)
+    #disp_in_tree(_heap_A)
+    #print("-"*70)
+    chk_heapify(_heap_A,a_go_first)
 ###################################################
 #Starting the test program
 def test_bench(sort_table,sel,swap_method):
@@ -162,24 +182,11 @@ sort_table={"insert":insert_sort,
             "merge_t2b":top_down_merge_sort,
             "merge_b2t":down_top_merge_sort,
             "selection":selection_sort,
-            "heapsort":heapify_b2t_iter,
+            "heapsort_b2t":heapify_b2t_iter,
+            "heapsort_t2b":heapify_t2b_iter,
             "bubble":bubble_sort}
 parser = argparse.ArgumentParser(description = "A Python script implementing lots of sorting algorithm") 
-parser.add_argument('sort_algorithm',choices=["insert","merge_t2b","merge_b2t","selection","heapsort","bubble"],help = "available sorting methords")
+parser.add_argument('sort_algorithm',choices=["insert","merge_t2b","merge_b2t","selection","heapsort_b2t","heapsort_t2b","bubble"],help = "available sorting methords")
 parser.add_argument('--direction','-d',choices=["ascend","descend"],help="the direction of sorting result")
 args = parser.parse_args()
 test_bench(sort_table,args.sort_algorithm,swap_method[args.direction])
-#if len(argv) == 3:
-#    if argv[1] in ["insert","merge_t2b","merge_b2t","selection","bubble"] and \
-#            argv[2] in ["ascend","descend"]:
-#        test_bench(sort_table,argv[1],swap_method[argv[2]])
-#    else:
-#        print("illegal arguments",argv[1]," and ",argv[2])
-#else:
-#    print("Usage:sort_tut sort_method ascend/descend")
-#    print("sort_method:")
-#    print("\t1. insert:execute insert sort")
-#    print("\t2. merge :execute merge_[b2t/t2b]  sort")
-#    print("\t3. selection :execute selection  sort")
-#    print("\t4. bubble :execute bubble  sort")
-#
