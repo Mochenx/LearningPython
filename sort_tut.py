@@ -5,7 +5,7 @@ from sys import argv
 import argparse
 
 ###################################################
-#Insert sort
+#Insert Sort/Basic Insert Sort
 def insert_sort(_sort_A,a_go_first = lambda a,b:a>b):
     for v_with_idx in enumerate(_sort_A[:]):
         for _before_v in enumerate(_sort_A[0:v_with_idx[0]]):
@@ -16,7 +16,7 @@ def insert_sort(_sort_A,a_go_first = lambda a,b:a>b):
                 _sort_A.insert(_before_v[0],_v)
                 break
 ###################################################
-#Merge sort
+#Merge Sort/Basic Merge Sort
 #Top-Down Implementation
 def top_down_merge_sort(_sort_A,a_go_first = lambda a,b:a>b):
     _sort_A[:] = top_down_split_merge(_sort_A[:],a_go_first)
@@ -62,8 +62,18 @@ def down_top_merge_sort(_sort_A,a_go_first = lambda a,b:a>b):
             s += (2*width)
         #print("===================")
         width *= 2
+
 ###################################################
-#Selection Sort
+#Exchange Sort/Bubble sort
+def bubble_sort(_sort_A,a_go_first = lambda a,b: a>b):
+    for i in range(len(_sort_A)):
+        for j in range(len(_sort_A)-1-i):
+            if not a_go_first(_sort_A[j],_sort_A[j+1]):
+                _sort_A[j],_sort_A[j+1] = _sort_A[j+1],_sort_A[j]
+        #print(_sort_A)
+
+###################################################
+#Selection Sort/Basic Selection Sort
 def selection_sort(_sort_A,a_go_first = lambda a,b: a>b):
     for i,item_prev in enumerate(_sort_A[:]):
         sel_idx = i
@@ -76,18 +86,9 @@ def selection_sort(_sort_A,a_go_first = lambda a,b: a>b):
         #print(_sort_A)
         #print("--------------")
 
-###################################################
-#Bubble sort
-def bubble_sort(_sort_A,a_go_first = lambda a,b: a>b):
-    for i in range(len(_sort_A)):
-        for j in range(len(_sort_A)-1-i):
-            if not a_go_first(_sort_A[j],_sort_A[j+1]):
-                _sort_A[j],_sort_A[j+1] = _sort_A[j+1],_sort_A[j]
-        #print(_sort_A)
-
 
 ###################################################
-#Heap Sort
+#Selection Sort/Heap Sort
 def disp_in_tree(tree2disp):
     whole_tree = ""
     tree = []
