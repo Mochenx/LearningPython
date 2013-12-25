@@ -125,41 +125,71 @@ def heapify_b2t_iter(_heap_A,a_go_first = lambda a,b: a>b):
                 
     #print("-"*70)
     #disp_in_tree(_heap_A)
-    for i in reversed(range((len(_heap_A)-2)//2+1)):
-        nxt_root = i
+    def shift_down(_heap_A,nxt_root,a_go_first = lambda a,b: a>b):
         while nxt_root < len(_heap_A):
             k = nxt_root
             for j in range(1,3):
+                #Out of index range
                 if 2*k+j >= len(_heap_A):
-                    nxt_root = len(_heap_A) # To terminate the outter while loop
                     break
                 if not a_go_first(_heap_A[nxt_root],_heap_A[2*k+j]):
                     nxt_root = 2*k+j
-            if nxt_root == k or nxt_root == len(_heap_A):
-                nxt_root = len(_heap_A)
+            # To terminate the outter while loop 
+            if nxt_root == k:
+                return
             else:
                 _heap_A[k],_heap_A[nxt_root] = _heap_A[nxt_root],_heap_A[k]
+
+    for i in reversed(range((len(_heap_A)-2)//2+1)):
+        nxt_root = i
+        shift_down(_heap_A,nxt_root,a_go_first)
     #print("="*30)
     #disp_in_tree(_heap_A)
     #print("-"*70)
     chk_heapify(_heap_A,a_go_first)
+    return shift_down
+
+def heapsort_b2t(_heap_A,a_go_first = lambda a,b: a>b):
+    to_heapify = _heap_A[:]
+    shift_down = heapify_b2t_iter(to_heapify,a_go_first)
+    for i in range(len(_heap_A)):
+        _heap_A[i] = to_heapify[0]
+        if i < len(_heap_A)-1:
+            #swap the root and the least leaf in heap
+            to_heapify[0] = to_heapify[-1]
+            to_heapify = to_heapify[:-1]
+            shift_down(to_heapify,0,a_go_first)
+        #print("="*30)
+        #disp_in_tree(to_heapify)
 
 def heapify_t2b_iter(_heap_A,a_go_first = lambda a,b: a>b):
     #print("-"*70)
     #disp_in_tree(_heap_A)
-    for i in range(1,len(_heap_A)):
-        root = (i-1)//2
-        leaf = i
+    def shiftup(_heap_A,root,leaf,a_go_first = lambda a,b: a>b):
         while root >= 0:
             if not a_go_first(_heap_A[root],_heap_A[leaf]):
                 _heap_A[leaf],_heap_A[root] = _heap_A[root],_heap_A[leaf]
                 leaf,root = root,(root-1)//2
             else:
                 break
+        return root,leaf
+    for i in range(1,len(_heap_A)):
+        root = (i-1)//2
+        leaf = i
+        root,leaf = shiftup(_heap_A,root,leaf,a_go_first)
     #print("="*30)
     #disp_in_tree(_heap_A)
     #print("-"*70)
     chk_heapify(_heap_A,a_go_first)
+    return shiftup
+
+def heapsort_t2b(_heap_A,a_go_first = lambda a,b: a>b):
+    to_heapify = _heap_A[:]
+    for i in range(len(_heap_A)):
+        heapify_t2b_iter(to_heapify,a_go_first)
+        _heap_A[i] = to_heapify[0]
+        to_heapify = to_heapify[1:]
+        
 ###################################################
 #Starting the test program
 def test_bench(sort_table,sel,swap_method):
@@ -182,11 +212,14 @@ sort_table={"insert":insert_sort,
             "merge_t2b":top_down_merge_sort,
             "merge_b2t":down_top_merge_sort,
             "selection":selection_sort,
-            "heapsort_b2t":heapify_b2t_iter,
-            "heapsort_t2b":heapify_t2b_iter,
+            "heapsort_b2t":heapsort_b2t,
+            "heapsort_t2b":heapsort_t2b,
             "bubble":bubble_sort}
 parser = argparse.ArgumentParser(description = "A Python script implementing lots of sorting algorithm") 
-parser.add_argument('sort_algorithm',choices=["insert","merge_t2b","merge_b2t","selection","heapsort_b2t","heapsort_t2b","bubble"],help = "available sorting methords")
+parser.add_argument('sort_algorithm',choices=["insert","merge_t2b",
+                                              "merge_b2t","selection",
+                                              "heapsort_b2t","heapsort_t2b",
+                                              "bubble"],help = "available sorting methords")
 parser.add_argument('--direction','-d',choices=["ascend","descend"],help="the direction of sorting result")
 args = parser.parse_args()
 test_bench(sort_table,args.sort_algorithm,swap_method[args.direction])
