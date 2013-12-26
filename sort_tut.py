@@ -16,7 +16,7 @@ class sort_mgr:
 ###################################################
 #Insert Sort/Basic Insert Sort
 @sort_mgr.add2mgr
-def insert_sort(_sort_A,a_go_first = lambda a,b:a>b):
+def insert(_sort_A,a_go_first = lambda a,b:a>b):
     for v_with_idx in enumerate(_sort_A[:]):
         for _before_v in enumerate(_sort_A[0:v_with_idx[0]]):
             #print(_sort_A)
@@ -25,11 +25,28 @@ def insert_sort(_sort_A,a_go_first = lambda a,b:a>b):
                 _v = _sort_A.pop(v_with_idx[0])
                 _sort_A.insert(_before_v[0],_v)
                 break
+
+#------------------------------------------------------------
+#Insert Sort/Shell Sort
+@sort_mgr.add2mgr
+def shellsort(_sort_A,a_go_first = lambda a,b:a>b):
+    gaps = [701,301,132,57,23,10,4,1]
+    for gap in gaps:
+        if gap >= len(_sort_A):
+            continue
+        #print("gap:%0d is usable"%gap)
+        for i in range(gap,len(_sort_A)):
+            for j in range(i,gap-1,-1*gap):
+                if not a_go_first(_sort_A[j-gap],_sort_A[j]):
+                    _sort_A[j-gap],_sort_A[j] = _sort_A[j],_sort_A[j-gap]
+        #print(_sort_A)
+        #print("-"*40)
+
 ###################################################
 #Merge Sort/Basic Merge Sort
 #Top-Down Implementation
 @sort_mgr.add2mgr
-def merge_sort_t2b(_sort_A,a_go_first = lambda a,b:a>b):
+def merge_t2b(_sort_A,a_go_first = lambda a,b:a>b):
     _sort_A[:] = top_down_split_merge(_sort_A[:],a_go_first)
 def top_down_split_merge(_sort_A,a_go_first = lambda a,b:a>b):
     if len(_sort_A) < 2:
@@ -51,7 +68,7 @@ def top_down_merge(_sort_left,_sort_right,a_go_first = lambda a,b:a>b):
 
 #Down-Top Implementation
 @sort_mgr.add2mgr
-def merge_sort_b2t(_sort_A,a_go_first = lambda a,b:a>b):
+def merge_b2t(_sort_A,a_go_first = lambda a,b:a>b):
     size = len(_sort_A)
     width = 1
     while (2*width)//size < 2:
@@ -78,7 +95,7 @@ def merge_sort_b2t(_sort_A,a_go_first = lambda a,b:a>b):
 ###################################################
 #Exchange Sort/Bubble sort
 @sort_mgr.add2mgr
-def bubble_sort(_sort_A,a_go_first = lambda a,b: a>b):
+def bubble(_sort_A,a_go_first = lambda a,b: a>b):
     for i in range(len(_sort_A)):
         for j in range(len(_sort_A)-1-i):
             if not a_go_first(_sort_A[j],_sort_A[j+1]):
@@ -88,7 +105,7 @@ def bubble_sort(_sort_A,a_go_first = lambda a,b: a>b):
 ###################################################
 #Selection Sort/Basic Selection Sort
 @sort_mgr.add2mgr
-def selection_sort(_sort_A,a_go_first = lambda a,b: a>b):
+def selection(_sort_A,a_go_first = lambda a,b: a>b):
     for i,item_prev in enumerate(_sort_A[:]):
         sel_idx = i
         for j,item_curr in enumerate(_sort_A[i+1:]):
@@ -101,7 +118,7 @@ def selection_sort(_sort_A,a_go_first = lambda a,b: a>b):
         #print("--------------")
 
 
-###################################################
+#------------------------------------------------------------
 #Selection Sort/Heap Sort
 def disp_in_tree(tree2disp):
     whole_tree = ""
