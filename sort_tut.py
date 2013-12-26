@@ -128,6 +128,49 @@ def bubble(_sort_A,a_go_first = lambda a,b: a>b):
                 _sort_A[j],_sort_A[j+1] = _sort_A[j+1],_sort_A[j]
         #print(_sort_A)
 
+@sort_mgr.add2mgr
+def quick_simple(_sort_A,a_go_first = lambda a,b: a>b):
+    if len(_sort_A) <= 1:
+        return
+    l_list = []
+    r_list = []
+    for v in _sort_A[1:]:
+        if a_go_first(v,_sort_A[0]):
+            l_list.append(v)
+        else:
+            r_list.append(v)
+    
+    quick_simple(l_list,a_go_first)
+    quick_simple(r_list,a_go_first)
+    #print(l_list,"[",_sort_A[0],"]",r_list,"\n")
+    _sort_A[:] = l_list +[_sort_A[0]] + r_list
+
+def qkst_partition(_sort_A,l_start,pivot,r_end,a_go_first = lambda a,b: a>b): 
+    #Use the last slot as the place hold the chosed one
+    _sort_A[r_end],_sort_A[pivot] = _sort_A[pivot],_sort_A[r_end]
+    bigger_idx = l_start
+    for i in range(l_start,r_end):#From l_start ... r_end-1
+        if a_go_first(_sort_A[i],_sort_A[r_end]):
+            #Swap the preserved element and current one
+            _sort_A[i],_sort_A[bigger_idx] = _sort_A[bigger_idx],_sort_A[i]
+            bigger_idx += 1
+    _sort_A[r_end],_sort_A[bigger_idx] = _sort_A[bigger_idx],_sort_A[r_end]
+    return bigger_idx
+    
+
+@sort_mgr.add2mgr
+def quick(_sort_A,a_go_first = lambda a,b: a>b,l_start = None,r_end = None):
+    if l_start == None:
+        l_start = 0
+    if r_end == None:
+        r_end = len(_sort_A)-1
+    if l_start >= r_end:
+        return
+    pivot = qkst_partition(_sort_A,l_start,(l_start+r_end)//2,r_end,a_go_first)
+    #print(l_start,pivot,r_end)
+    #print(_sort_A[:pivot] , [_sort_A[pivot]] , _sort_A[pivot+1:])
+    quick(_sort_A,a_go_first,l_start,pivot-1)
+    quick(_sort_A,a_go_first,pivot+1,r_end)
 ###################################################
 #Selection Sort/Basic Selection Sort
 @sort_mgr.add2mgr
