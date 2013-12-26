@@ -92,6 +92,32 @@ def merge_b2t(_sort_A,a_go_first = lambda a,b:a>b):
         #print("===================")
         width *= 2
 
+#------------------------------------------------------------
+#Merge Sort/Strand Sort
+@sort_mgr.add2mgr
+def strand(_sort_A,a_go_first = lambda a,b:a>b):
+    to_sort = _sort_A[:]
+
+    ordered_list = []
+    while len(to_sort) > 0:
+        sublist = []
+        i = 1
+        #print("Orig:",to_sort)
+        sublist.append(to_sort.pop(0))
+        while i < len(to_sort):
+            if a_go_first(sublist[-1],to_sort[i]):
+                sublist.append(to_sort.pop(i))
+            else:
+                i += 1
+        #print("Orderlist:",ordered_list)
+        #print("Sublist:",sublist)
+        if len(ordered_list) > 0:
+            ordered_list = top_down_merge(ordered_list,sublist,a_go_first)
+        else:
+            ordered_list = sublist
+        #print("===================")
+    _sort_A[:] = ordered_list
+
 ###################################################
 #Exchange Sort/Bubble sort
 @sort_mgr.add2mgr
@@ -230,6 +256,7 @@ def test_bench(mgr,sel,swap_method):
     sort_A = [randrange(0,40,1) for x in range(23)]
 
     before_sort = sort_A[:]
+    print("It's going to perform %s sorting"%sel)
     print("Before sorting",sort_A)
     before_sort.sort(reverse=swap_method[1])
     print("Expect        ",before_sort)
