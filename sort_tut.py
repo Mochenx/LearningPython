@@ -4,9 +4,19 @@ from random import randrange
 from sys import argv
 import argparse
 
+class sort_mgr:
+    sort_names = []
+    @staticmethod
+    def add2mgr(sort_f):
+        setattr(sort_mgr,sort_f.__name__,staticmethod(sort_f))
+        sort_mgr.sort_names.append(sort_f.__name__)
+        return sort_f
+    def call_sort(self,sort_name):
+        return getattr(self,sort_name)
 ###################################################
 #Insert Sort/Basic Insert Sort
-def insert_sort(_sort_A,a_go_first = lambda a,b:a>b):
+@sort_mgr.add2mgr
+def insert(_sort_A,a_go_first = lambda a,b:a>b):
     for v_with_idx in enumerate(_sort_A[:]):
         for _before_v in enumerate(_sort_A[0:v_with_idx[0]]):
             #print(_sort_A)
@@ -15,10 +25,28 @@ def insert_sort(_sort_A,a_go_first = lambda a,b:a>b):
                 _v = _sort_A.pop(v_with_idx[0])
                 _sort_A.insert(_before_v[0],_v)
                 break
+
+#------------------------------------------------------------
+#Insert Sort/Shell Sort
+@sort_mgr.add2mgr
+def shellsort(_sort_A,a_go_first = lambda a,b:a>b):
+    gaps = [701,301,132,57,23,10,4,1]
+    for gap in gaps:
+        if gap >= len(_sort_A):
+            continue
+        #print("gap:%0d is usable"%gap)
+        for i in range(gap,len(_sort_A)):
+            for j in range(i,gap-1,-1*gap):
+                if not a_go_first(_sort_A[j-gap],_sort_A[j]):
+                    _sort_A[j-gap],_sort_A[j] = _sort_A[j],_sort_A[j-gap]
+        #print(_sort_A)
+        #print("-"*40)
+
 ###################################################
 #Merge Sort/Basic Merge Sort
 #Top-Down Implementation
-def top_down_merge_sort(_sort_A,a_go_first = lambda a,b:a>b):
+@sort_mgr.add2mgr
+def merge_t2b(_sort_A,a_go_first = lambda a,b:a>b):
     _sort_A[:] = top_down_split_merge(_sort_A[:],a_go_first)
 def top_down_split_merge(_sort_A,a_go_first = lambda a,b:a>b):
     if len(_sort_A) < 2:
@@ -39,7 +67,8 @@ def top_down_merge(_sort_left,_sort_right,a_go_first = lambda a,b:a>b):
     return new_array
 
 #Down-Top Implementation
-def down_top_merge_sort(_sort_A,a_go_first = lambda a,b:a>b):
+@sort_mgr.add2mgr
+def merge_b2t(_sort_A,a_go_first = lambda a,b:a>b):
     size = len(_sort_A)
     width = 1
     while (2*width)//size < 2:
@@ -63,18 +92,89 @@ def down_top_merge_sort(_sort_A,a_go_first = lambda a,b:a>b):
         #print("===================")
         width *= 2
 
+#------------------------------------------------------------
+#Merge Sort/Strand Sort
+@sort_mgr.add2mgr
+def strand(_sort_A,a_go_first = lambda a,b:a>b):
+    to_sort = _sort_A[:]
+
+    ordered_list = []
+    while len(to_sort) > 0:
+        sublist = []
+        i = 1
+        #print("Orig:",to_sort)
+        sublist.append(to_sort.pop(0))
+        while i < len(to_sort):
+            if a_go_first(sublist[-1],to_sort[i]):
+                sublist.append(to_sort.pop(i))
+            else:
+                i += 1
+        #print("Orderlist:",ordered_list)
+        #print("Sublist:",sublist)
+        if len(ordered_list) > 0:
+            ordered_list = top_down_merge(ordered_list,sublist,a_go_first)
+        else:
+            ordered_list = sublist
+        #print("===================")
+    _sort_A[:] = ordered_list
+
 ###################################################
 #Exchange Sort/Bubble sort
-def bubble_sort(_sort_A,a_go_first = lambda a,b: a>b):
+@sort_mgr.add2mgr
+def bubble(_sort_A,a_go_first = lambda a,b: a>b):
     for i in range(len(_sort_A)):
         for j in range(len(_sort_A)-1-i):
             if not a_go_first(_sort_A[j],_sort_A[j+1]):
                 _sort_A[j],_sort_A[j+1] = _sort_A[j+1],_sort_A[j]
         #print(_sort_A)
 
+@sort_mgr.add2mgr
+def quick_simple(_sort_A,a_go_first = lambda a,b: a>b):
+    if len(_sort_A) <= 1:
+        return
+    l_list = []
+    r_list = []
+    for v in _sort_A[1:]:
+        if a_go_first(v,_sort_A[0]):
+            l_list.append(v)
+        else:
+            r_list.append(v)
+    
+    quick_simple(l_list,a_go_first)
+    quick_simple(r_list,a_go_first)
+    #print(l_list,"[",_sort_A[0],"]",r_list,"\n")
+    _sort_A[:] = l_list +[_sort_A[0]] + r_list
+
+def qkst_partition(_sort_A,l_start,pivot,r_end,a_go_first = lambda a,b: a>b): 
+    #Use the last slot as the place hold the chosed one
+    _sort_A[r_end],_sort_A[pivot] = _sort_A[pivot],_sort_A[r_end]
+    bigger_idx = l_start
+    for i in range(l_start,r_end):#From l_start ... r_end-1
+        if a_go_first(_sort_A[i],_sort_A[r_end]):
+            #Swap the preserved element and current one
+            _sort_A[i],_sort_A[bigger_idx] = _sort_A[bigger_idx],_sort_A[i]
+            bigger_idx += 1
+    _sort_A[r_end],_sort_A[bigger_idx] = _sort_A[bigger_idx],_sort_A[r_end]
+    return bigger_idx
+    
+
+@sort_mgr.add2mgr
+def quick(_sort_A,a_go_first = lambda a,b: a>b,l_start = None,r_end = None):
+    if l_start == None:
+        l_start = 0
+    if r_end == None:
+        r_end = len(_sort_A)-1
+    if l_start >= r_end:
+        return
+    pivot = qkst_partition(_sort_A,l_start,(l_start+r_end)//2,r_end,a_go_first)
+    #print(l_start,pivot,r_end)
+    #print(_sort_A[:pivot] , [_sort_A[pivot]] , _sort_A[pivot+1:])
+    quick(_sort_A,a_go_first,l_start,pivot-1)
+    quick(_sort_A,a_go_first,pivot+1,r_end)
 ###################################################
 #Selection Sort/Basic Selection Sort
-def selection_sort(_sort_A,a_go_first = lambda a,b: a>b):
+@sort_mgr.add2mgr
+def selection(_sort_A,a_go_first = lambda a,b: a>b):
     for i,item_prev in enumerate(_sort_A[:]):
         sel_idx = i
         for j,item_curr in enumerate(_sort_A[i+1:]):
@@ -87,7 +187,7 @@ def selection_sort(_sort_A,a_go_first = lambda a,b: a>b):
         #print("--------------")
 
 
-###################################################
+#------------------------------------------------------------
 #Selection Sort/Heap Sort
 def disp_in_tree(tree2disp):
     whole_tree = ""
@@ -150,6 +250,7 @@ def heapify_b2t_iter(_heap_A,a_go_first = lambda a,b: a>b):
     chk_heapify(_heap_A,a_go_first)
     return shift_down
 
+@sort_mgr.add2mgr
 def heapsort_b2t(_heap_A,a_go_first = lambda a,b: a>b):
     to_heapify = _heap_A[:]
     shift_down = heapify_b2t_iter(to_heapify,a_go_first)
@@ -184,6 +285,7 @@ def heapify_t2b_iter(_heap_A,a_go_first = lambda a,b: a>b):
     chk_heapify(_heap_A,a_go_first)
     return shiftup
 
+@sort_mgr.add2mgr
 def heapsort_t2b(_heap_A,a_go_first = lambda a,b: a>b):
     to_heapify = _heap_A[:]
     for i in range(len(_heap_A)):
@@ -193,14 +295,15 @@ def heapsort_t2b(_heap_A,a_go_first = lambda a,b: a>b):
         
 ###################################################
 #Starting the test program
-def test_bench(sort_table,sel,swap_method):
+def test_bench(mgr,sel,swap_method):
     sort_A = [randrange(0,40,1) for x in range(23)]
 
     before_sort = sort_A[:]
+    print("It's going to perform %s sorting"%sel)
     print("Before sorting",sort_A)
     before_sort.sort(reverse=swap_method[1])
     print("Expect        ",before_sort)
-    sort_table[sel](sort_A,swap_method[0])
+    mgr.call_sort(sel)(sort_A,swap_method[0]) 
 
     print("After sorting ",sort_A)
     for i in range(len(before_sort)):
@@ -209,18 +312,10 @@ def test_bench(sort_table,sel,swap_method):
 
 swap_method={"ascend":(lambda a,b:a<b,False),
             "descend":(lambda a,b:a>b,True)}
-sort_table={"insert":insert_sort,
-            "merge_t2b":top_down_merge_sort,
-            "merge_b2t":down_top_merge_sort,
-            "selection":selection_sort,
-            "heapsort_b2t":heapsort_b2t,
-            "heapsort_t2b":heapsort_t2b,
-            "bubble":bubble_sort}
+
+mgr = sort_mgr()
 parser = argparse.ArgumentParser(description = "A Python script implementing lots of sorting algorithm") 
-parser.add_argument('sort_algorithm',choices=["insert","merge_t2b",
-                                              "merge_b2t","selection",
-                                              "heapsort_b2t","heapsort_t2b",
-                                              "bubble"],help = "available sorting methords")
+parser.add_argument('sort_algorithm',choices = mgr.sort_names,help = "available sorting methords")
 parser.add_argument('--direction','-d',choices=["ascend","descend"],help="the direction of sorting result")
 args = parser.parse_args()
-test_bench(sort_table,args.sort_algorithm,swap_method[args.direction])
+test_bench(mgr,args.sort_algorithm,swap_method[args.direction])
