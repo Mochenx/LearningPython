@@ -3,6 +3,7 @@
 from random import randrange
 from sys import argv
 import argparse
+import BST
 
 class sort_mgr:
     sort_names = []
@@ -293,10 +294,17 @@ def heapsort_t2b(_heap_A,a_go_first = lambda a,b: a>b):
         _heap_A[i] = to_heapify[0]
         to_heapify = to_heapify[1:]
         
+@sort_mgr.add2mgr
+def bst_sort(_heap_A,a_go_first = lambda a,b: a>b):
+	bst = BST.BSTree(a_go_first)
+	for v in _heap_A:
+		bst.add(v)
+	_heap_A[:] = bst.travese()
 ###################################################
 #Starting the test program
 def test_bench(mgr,sel,swap_method):
     sort_A = [randrange(0,40,1) for x in range(23)]
+    #sort_A = [6, 33, 9, 31, 27, 28, 36, 9, 14, 12, 38, 3, 11, 6, 39, 21, 4, 36, 22, 13, 6, 34, 34]
 
     before_sort = sort_A[:]
     print("It's going to perform %s sorting"%sel)

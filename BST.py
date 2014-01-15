@@ -13,15 +13,15 @@ class BSTree:
 			return True,cur_root
 		result,ret_node = False,cur_root
 		pass_thru = False 
-		if 'left' in cur_root and node_key < cur_root['key']:
+		if 'left' in cur_root and self.a_go_first(node_key , cur_root['key']):
 			if 'pass_waydown' in key_cbs:
 				key_cbs['pass_waydown'](cur_root['left'])
-			result,ret_node = self.search(node_key,cur_root['left'],key_cbs)
+			result,ret_node = self.search(node_key,cur_root['left'],**key_cbs)
 			pass_thru = True
-		if 'right' in cur_root and node_key > cur_root['key']:
+		if 'right' in cur_root and not self.a_go_first(node_key , cur_root['key']):
 			if 'pass_waydown' in key_cbs:
 				key_cbs['pass_waydown'](cur_root['right'])
-			result,ret_node = self.search(node_key,cur_root['right'],key_cbs)
+			result,ret_node = self.search(node_key,cur_root['right'],**key_cbs)
 			pass_thru = True
 		#If runs here, it means no item has been found
 		if pass_thru:
@@ -41,7 +41,7 @@ class BSTree:
 				node['key'] = node_key
 				sel_node = node
 			else:
-				if node_key < node['key']:
+				if self.a_go_first(node_key , node['key']):
 					node['left'] = {'key':node_key}
 					sel_node = node['left']
 				else:#>
@@ -50,7 +50,11 @@ class BSTree:
 			sel_node['repeat'] = 1
 			sel_node['count'] = 1
 		def add_pass_cb(result,node):
-			node['count'] = node['left']['count'] + node['right']['count']
+			node['count'] = 1
+			if 'left' in node:
+				node['count'] = node['left']['count']
+			if 'right' in node:
+				node['count'] += node['right']['count']
 		self.search(node_key,hit_cb=add_hit_cb,miss_cb=add_miss_cb,pass_wayup=add_pass_cb)
 
 	def travese(self,cur_root = None,**kargs):
@@ -59,7 +63,7 @@ class BSTree:
 		if not 'left' in cur_root and not 'right' in cur_root:
 			if 'leaf' in kargs:
 				kargs['leaf'](cur_root)
-			return [cur_root['key']]
+			return [cur_root['key']]* cur_root['repeat']
 		l_subtree = []
 		r_subtree = None
 		if 'pass_waydown' in kargs:
@@ -70,8 +74,8 @@ class BSTree:
 			r_subtree = self.travese(cur_root['right'])
 		if 'pass_wayup' in kargs:
 			kargs['pass_wayup'](cur_root)
-		print(cur_root)
-		l_subtree.extend([cur_root['key']])
+		#print(cur_root)
+		l_subtree.extend([cur_root['key']] * cur_root['repeat'])
 		if not r_subtree is None:
 			l_subtree.extend(r_subtree)
 		return l_subtree
