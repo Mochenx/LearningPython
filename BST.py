@@ -3,28 +3,33 @@ class BSTree:
 	def __init__(self,a_go_first = lambda a,b:a>b):
 		self.a_go_first = a_go_first
 		self.root = {}
-	def search(self,node_key,cur_root = None,hit_cb = None,miss_cb = None,pass_cb = None):
+	def search(self,node_key,cur_root = None,**key_cbs):
 		if cur_root is None:
 			cur_root = self.root
 
-		if node_key == cur_root['key']:
-			if not hit_cb is None
-				hit_cb(cur_root)
+		if 'key' in cur_root and node_key == cur_root['key']:
+			if 'hit_cb' in key_cbs:
+				key_cbs['hit_cb'](cur_root)
 			return True,cur_root
 		result,ret_node = False,cur_root
 		pass_thru = False 
 		if 'left' in cur_root and node_key < cur_root['key']:
-			result,ret_node = search(cur_root['left'],node_key)
+			if 'pass_waydown' in key_cbs:
+				key_cbs['pass_waydown'](cur_root['left'])
+			result,ret_node = self.search(node_key,cur_root['left'],key_cbs)
 			pass_thru = True
 		if 'right' in cur_root and node_key > cur_root['key']:
-			result,ret_node = search(cur_root['right'],node_key)
+			if 'pass_waydown' in key_cbs:
+				key_cbs['pass_waydown'](cur_root['right'])
+			result,ret_node = self.search(node_key,cur_root['right'],key_cbs)
 			pass_thru = True
 		#If runs here, it means no item has been found
 		if pass_thru:
-			pass_cb(pass_thru,ret_node)
-		else
-			if not miss_cb is None
-				miss_cb(ret_node)
+			if 'pass_wayup' in key_cbs:
+				key_cbs['pass_wayup'](pass_thru,ret_node)
+		else:
+			if 'miss_cb' in key_cbs:
+				key_cbs['miss_cb'](ret_node)
 		return result,ret_node
 
 	#def select(self,node_key,cur_root = None):
@@ -32,25 +37,54 @@ class BSTree:
 		def add_hit_cb(node):
 			node['repeat'] += 1
 		def add_miss_cb(node):
-			if node_key < node['key']:
-				node['left'] = {'key':node_key}
-			else#>
-				node['right'] = {'key':node_key}
-			node['repeat'] = 1
-			node['count'] = 1
+			if not 'key' in node:
+				node['key'] = node_key
+				sel_node = node
+			else:
+				if node_key < node['key']:
+					node['left'] = {'key':node_key}
+					sel_node = node['left']
+				else:#>
+					node['right'] = {'key':node_key}
+					sel_node = node['right']
+			sel_node['repeat'] = 1
+			sel_node['count'] = 1
 		def add_pass_cb(result,node):
 			node['count'] = node['left']['count'] + node['right']['count']
-		search(self,node_key,hit_cb=add_hit_cb,miss_cb=add_miss_cb,pass_cb=add_pass_cb)
-	def travese(self,cur_root = None):
+		self.search(node_key,hit_cb=add_hit_cb,miss_cb=add_miss_cb,pass_wayup=add_pass_cb)
+
+	def travese(self,cur_root = None,**kargs):
 		if cur_root is None:
 			cur_root = self.root
 		if not 'left' in cur_root and not 'right' in cur_root:
+			if 'leaf' in kargs:
+				kargs['leaf'](cur_root)
 			return [cur_root['key']]
+		l_subtree = []
+		r_subtree = None
+		if 'pass_waydown' in kargs:
+			kargs['pass_waydown'](cur_root)
 		if 'left' in cur_root:
-			l_subtree = travese(self,cur_root['left'])
+			l_subtree = self.travese(cur_root['left'])
 		if 'right' in cur_root:
-			r_subtree = travese(self,cur_root['right'])
-		return l_subtree + [cur_root['key']] + r_subtree
+			r_subtree = self.travese(cur_root['right'])
+		if 'pass_wayup' in kargs:
+			kargs['pass_wayup'](cur_root)
+		print(cur_root)
+		l_subtree.extend([cur_root['key']])
+		if not r_subtree is None:
+			l_subtree.extend(r_subtree)
+		return l_subtree
+	def layerify(self):
+		depth = 0
+		all_layers = []
+		def waydown(cur_root):
+			depth += 1
+		def wayup(cur_root):
+			depth -= 1
+		def leaf(cur_root):
+			depth -= 1
+		travese()
 	#def floor(self,node_key):
 
 	#def __str__(self):
@@ -80,9 +114,7 @@ class BSTree:
 	#        print(curr_layer)
 
 if __name__ == '__main__':
-	h = Node()
-	n = Node()
-	n.key = 200
-	h.nxt = n
-	h.key = 100
-	print(h.nxt.key)
+	bst = BSTree()
+	bst.add(1)
+	bst.add(0)
+	bst.travese()
