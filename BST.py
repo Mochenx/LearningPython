@@ -85,7 +85,7 @@ class BSTree:
         all_in_layers = {}
         def waydown(cur_root):
             #Root
-            if not 'seq_idx' in cur_root:
+            if not 'seq_idx' in cur_root or cur_root['seq_idx'] == 0:
                 cur_root['seq_idx'] = 0
                 all_in_layers[0] = cur_root
 
@@ -141,11 +141,40 @@ class BSTree:
                     curr_layer = curr_layer + space
             curr_layer += "\n"
             whole_tree += curr_layer
-	return whole_tree
+        return whole_tree
+
+    def rotate_left(self,cur_root = None):
+        if cur_root is None:
+            use_self_root = True
+            cur_root = self.root
+
+        if not 'left' in cur_root:
+            return cur_root
+        child = cur_root['left']
+        if not 'right' in child:
+            del cur_root['left']
+        else:
+            cur_root['left'] = child['right']
+        child['right'] = cur_root
+        #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        #seq_idx & count Must be DEALT WITH
+        #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        if use_self_root:
+            self.root = child
+        return child
+    
 
 if __name__ == '__main__':
     bst = BSTree()
-    bst.add(1)
     bst.add(0)
-    bst.travese()
+    bst.add(1)
+    bst.add(2)
+    bst.add(5)
+    #bst.add(8)
+    #bst.add(7)
+    #bst.add(9)
+    print(bst)
+    bst.rotate_left()
+    #bst.travese()
+    print("-------------------------------------\n")
     print(bst)
