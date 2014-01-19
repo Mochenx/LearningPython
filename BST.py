@@ -85,7 +85,8 @@ class BSTree:
         all_in_layers = {}
         def waydown(cur_root):
             #Root
-            if not 'seq_idx' in cur_root or cur_root['seq_idx'] == 0:
+            #if not 'seq_idx' in cur_root or cur_root['seq_idx'] == 0:
+            if cur_root == self.root:
                 cur_root['seq_idx'] = 0
                 all_in_layers[0] = cur_root
 
@@ -143,7 +144,9 @@ class BSTree:
             whole_tree += curr_layer
         return whole_tree
 
-    def rotate_left(self,cur_root = None):
+class LLRB_BSTree(BSTree):
+    def rotate_right(self,cur_root = None):
+        use_self_root =False
         if cur_root is None:
             use_self_root = True
             cur_root = self.root
@@ -156,25 +159,114 @@ class BSTree:
         else:
             cur_root['left'] = child['right']
         child['right'] = cur_root
+
         #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        #seq_idx & count Must be DEALT WITH
+        #"count" Must be DEALT WITH
+        child["count"] = cur_root["count"]
+        if "left" in child:
+            cur_root["count"] -= (child["left"]["count"] + 1)
         #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         if use_self_root:
             self.root = child
         return child
-    
+    def rotate_left(self,cur_root = None):
+        use_self_root =False
+        if cur_root is None:
+            use_self_root = True
+            cur_root = self.root
+        if not "right" in cur_root:
+            return cur_root
+        child = cur_root["right"]
+        if not "left" in child:
+            del cur_root["right"]
+        else:
+            cur_root["right"] = child["left"]
+        child["left"] = cur_root
+
+        #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        #"count" Must be DEALT WITH
+        child["count"] = cur_root["count"]
+        if "right" in child:
+            cur_root["count"] -= (child["right"]["count"] + 1)
+            #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        if use_self_root:
+            self.root = child
+        return child
+    def is_red(self,node,which_child):
+        if not which_child in node:
+            return False
+        return node[which_child]['red'] == 1
+    def flipcolor(self,node):
+        node['red'] = 1
+        node['left']['red'] = 0
+        node['right']['red'] = 0
+    def add(self,node_key):
+        def llrb_add_hit_cb(node):
+            node['repeat'] += 1
+        def llrb_add_miss_cb(node):
+            if not 'key' in node:
+                node['key'] = node_key
+                sel_node = node
+            else:
+                if self.a_go_first(node_key , node['key']):
+                    node['left'] = {'key':node_key}
+                    sel_node = node['left']
+                else:#>
+                    node['right'] = {'key':node_key}
+                    sel_node = node['right']
+            sel_node['repeat'] = 1
+            sel_node['count'] = 1
+            sel_node['red'] = 1
+        def llrb_add_pass_cb(result,node):
+            node['count'] = 1
+            if 'left' in node:
+                node['count'] = node['left']['count']
+            if 'right' in node:
+                node['count'] += node['right']['count']
+
+            #In 3-node of a 2-3 tree, we set the children of three sub-nodes as number 0 1 2 as the following:
+            #                     |
+            #               | A  3-Node |
+            #               /     |     \
+            #sub-nodes: node 0  node 1  node 2
+            #Lean-Left Red Black Tree Patterns
+            #   pattern0            pattern1                pattern2
+            #       /                  /                      /
+            #    *node               node                  *node
+            #     /                  /                     /    \
+            #   node              *node                  node   node
+            #   /                    \
+            # node                   node
+            patn0_exists = 0
+            if 'left' in node:
+                if 'left' in node['left']:
+                    patn0_exists = 1
+
+            #Pattern 1
+            if self.is_red(node,'right') and not self.is_red(node,'left'):
+                self.rotate_left(node)
+            #Pattern 0
+            if patn0_exists == 1 and self.self.is_red(node,'left') and self.is_red(node['left'],'left'):
+                self.rotate_right(node)
+            #Pattern 2
+            if self.is_red(node,'left') and self.is_red(node,'right'):
+                self.flipcolor(node)
+
+        self.search(node_key,hit_cb=llrb_add_hit_cb,miss_cb=llrb_add_miss_cb,pass_wayup=llrb_add_pass_cb)
+        self.root['red'] = 0#!!! Set Root to Black
+
 
 if __name__ == '__main__':
-    bst = BSTree()
-    bst.add(0)
-    bst.add(1)
-    bst.add(2)
-    bst.add(5)
-    #bst.add(8)
-    #bst.add(7)
-    #bst.add(9)
+    bst = LLRB_BSTree()
+    for i in range(0,5):
+        bst.add(i)
     print(bst)
-    bst.rotate_left()
-    #bst.travese()
-    print("-------------------------------------\n")
-    print(bst)
+    #bst.rotate_right()
+    ##bst.travese()
+    #print("-------------------------------------\n")
+    #print(bst)
+
+    #bst.rotate_left()
+    ##bst.travese()
+    #print("-------------------------------------\n")
+    #print(bst)
