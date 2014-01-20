@@ -160,6 +160,9 @@ class LLRB_BSTree(BSTree):
             cur_root['left'] = child['right']
         child['right'] = cur_root
 
+        child['red'] = cur_root['red']
+        cur_root['red'] = 1
+
         #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         #"count" Must be DEALT WITH
         child["count"] = cur_root["count"]
@@ -183,6 +186,9 @@ class LLRB_BSTree(BSTree):
             cur_root["right"] = child["left"]
         child["left"] = cur_root
 
+        child['red'] = cur_root['red']
+        cur_root['red'] = 1
+
         #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         #"count" Must be DEALT WITH
         child["count"] = cur_root["count"]
@@ -201,8 +207,24 @@ class LLRB_BSTree(BSTree):
         node['left']['red'] = 0
         node['right']['red'] = 0
     def add(self,node_key):
-        def llrb_add_hit_cb(node):
-            node['repeat'] += 1
+        def inner_add(cur_root):
+            if 'key' in cur_root and node_key == cur_root['key']:
+                cur_root['repeat'] += 1
+                return cur_root
+            pass_thru = False 
+            if 'left' in cur_root and self.a_go_first(node_key , cur_root['key']):
+                cur_root['left'] = inner_add(cur_root['left'])
+                pass_thru = True
+            if 'right' in cur_root and not self.a_go_first(node_key , cur_root['key']):
+                cur_root['right'] = inner_add(cur_root['right'])
+                pass_thru = True
+
+            #If runs here, it means no item has been found
+            if not pass_thru:
+                llrb_add_miss_cb(cur_root)
+            cur_root = llrb_add_pass_cb(cur_root)
+            return cur_root
+
         def llrb_add_miss_cb(node):
             if not 'key' in node:
                 node['key'] = node_key
@@ -217,7 +239,8 @@ class LLRB_BSTree(BSTree):
             sel_node['repeat'] = 1
             sel_node['count'] = 1
             sel_node['red'] = 1
-        def llrb_add_pass_cb(result,node):
+
+        def llrb_add_pass_cb(node):
             node['count'] = 1
             if 'left' in node:
                 node['count'] = node['left']['count']
@@ -244,26 +267,30 @@ class LLRB_BSTree(BSTree):
 
             #Pattern 1
             if self.is_red(node,'right') and not self.is_red(node,'left'):
-                self.rotate_left(node)
+                node = self.rotate_left(node)
             #Pattern 0
-            if patn0_exists == 1 and self.self.is_red(node,'left') and self.is_red(node['left'],'left'):
-                self.rotate_right(node)
+            if patn0_exists == 1 and self.is_red(node,'left') and self.is_red(node['left'],'left'):
+                node = self.rotate_right(node)
             #Pattern 2
             if self.is_red(node,'left') and self.is_red(node,'right'):
                 self.flipcolor(node)
+            return node
 
-        self.search(node_key,hit_cb=llrb_add_hit_cb,miss_cb=llrb_add_miss_cb,pass_wayup=llrb_add_pass_cb)
+        self.root = inner_add(self.root)
         self.root['red'] = 0#!!! Set Root to Black
 
 
 if __name__ == '__main__':
-    bst = LLRB_BSTree()
-    for i in range(0,5):
+    bst = BSTree()
+    llrb_bst = LLRB_BSTree()
+    for i in range(0,20):
         bst.add(i)
-    print(bst)
+        llrb_bst.add(i)
+    #print(bst)
+    print("-------------------------------------\n")
+    print(llrb_bst)
     #bst.rotate_right()
     ##bst.travese()
-    #print("-------------------------------------\n")
     #print(bst)
 
     #bst.rotate_left()
