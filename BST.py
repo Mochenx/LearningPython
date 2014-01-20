@@ -3,7 +3,11 @@ class BSTree:
     def __init__(self,a_go_first = lambda a,b:a>b):
         self.a_go_first = a_go_first
         self.root = {}
+
     def search(self,node_key,cur_root = None,**key_cbs):
+        """
+            search Binary Searching Tree with call-back interface
+        """
         if cur_root is None:
             cur_root = self.root
 
@@ -34,6 +38,12 @@ class BSTree:
 
     #def select(self,node_key,cur_root = None):
     def add(self,node_key):
+        """
+            Depends on call-back interface of search function to add new node into current tree
+            add_hit_cb :called when searching hit, compute new repeat counter
+            add_miss_cb:called when searching miss, add new node
+            add_pass_cb:called when travesing tree wayup, compute new count counter
+        """
         def add_hit_cb(node):
             node['repeat'] += 1
         def add_miss_cb(node):
@@ -58,6 +68,10 @@ class BSTree:
         self.search(node_key,hit_cb=add_hit_cb,miss_cb=add_miss_cb,pass_wayup=add_pass_cb)
 
     def travese(self,cur_root = None,**kargs):
+        """
+            Travese tree in linear, returen a queue containing all nodes
+            Providing call-back interface
+        """
         if cur_root is None:
             cur_root = self.root
         if not 'left' in cur_root and not 'right' in cur_root:
@@ -79,7 +93,15 @@ class BSTree:
         if not r_subtree is None:
             l_subtree.extend(r_subtree)
         return l_subtree
+
     def layerify(self):
+        """
+            Suppose current tree is put into an array, the index of a node must be corresponded to this:
+                left-child-index = 2*current-node-index + 1
+                right-child-index = 2*current-node-index + 2
+            This function will return a dict, with that index as key, depending on 
+            call-back interfaces of travese function.
+        """
         self.depth = 1
         self.max_depth = 0
         all_in_layers = {}
@@ -145,6 +167,7 @@ class BSTree:
         return whole_tree
 
 class LLRB_BSTree(BSTree):
+
     def rotate_right(self,cur_root = None):
         use_self_root =False
         if cur_root is None:
@@ -172,6 +195,7 @@ class LLRB_BSTree(BSTree):
         if use_self_root:
             self.root = child
         return child
+
     def rotate_left(self,cur_root = None):
         use_self_root =False
         if cur_root is None:
@@ -198,18 +222,28 @@ class LLRB_BSTree(BSTree):
         if use_self_root:
             self.root = child
         return child
+
     def is_red(self,node,which_child):
         if not which_child in node:
             return False
         return node[which_child]['red'] == 1
+
     def flipcolor(self,node):
         node['red'] = 1
         node['left']['red'] = 0
         node['right']['red'] = 0
+
     def add(self,node_key):
+        """
+            Add a new node to exist tree or null root
+            Defined three inner functions wich deals with the underlying operations
+            inner_add:Add the new node to the approrate position recuresively
+            llrb_add_miss_cb:The adding operation
+            llrb_add_pass_cb:Maintain Lean-Left-Red-Black tree structure
+        """
         def inner_add(cur_root):
             if 'key' in cur_root and node_key == cur_root['key']:
-                cur_root['repeat'] += 1
+                cur_root['repeat'] += 1#Repeat key
                 return cur_root
             pass_thru = False 
             if 'left' in cur_root and self.a_go_first(node_key , cur_root['key']):
@@ -219,9 +253,10 @@ class LLRB_BSTree(BSTree):
                 cur_root['right'] = inner_add(cur_root['right'])
                 pass_thru = True
 
-            #If runs here, it means no item has been found
+            #If runs here, it means no item has been found, we need to add a new node
             if not pass_thru:
                 llrb_add_miss_cb(cur_root)
+            #maintain LLRB Tree structure
             cur_root = llrb_add_pass_cb(cur_root)
             return cur_root
 

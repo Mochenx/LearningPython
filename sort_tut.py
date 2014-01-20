@@ -296,7 +296,7 @@ def heapsort_t2b(_heap_A,a_go_first = lambda a,b: a>b):
         
 @sort_mgr.add2mgr
 def bst_sort(_heap_A,a_go_first = lambda a,b: a>b):
-	bst = BST.BSTree(a_go_first)
+	bst = BST.LLRB_BSTree(a_go_first)
 	for v in _heap_A:
 		bst.add(v)
 	_heap_A[:] = bst.travese()
