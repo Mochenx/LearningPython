@@ -4,7 +4,9 @@ class BSTree:
         self.a_go_first = a_go_first
         self.root = {}
     def search(self,node_key,cur_root = None,**key_cbs):
+        root_now = 0
         if cur_root is None:
+            root_now = 1
             cur_root = self.root
 
         if 'key' in cur_root and node_key == cur_root['key']:
@@ -15,18 +17,22 @@ class BSTree:
         pass_thru = False 
         if 'left' in cur_root and self.a_go_first(node_key , cur_root['key']):
             if 'pass_waydown' in key_cbs:
-                key_cbs['pass_waydown'](cur_root['left'])
+                key_cbs['pass_waydown'](node_from=cur_root,node_to=cur_root['left'])
             result,ret_node = self.search(node_key,cur_root['left'],**key_cbs)
+            #cur_root['left'] = ret_node
             pass_thru = True
         if 'right' in cur_root and not self.a_go_first(node_key , cur_root['key']):
             if 'pass_waydown' in key_cbs:
-                key_cbs['pass_waydown'](cur_root['right'])
+                key_cbs['pass_waydown'](node_from=cur_root,node_to=cur_root['right'])
             result,ret_node = self.search(node_key,cur_root['right'],**key_cbs)
+            #cur_root['right'] = ret_node
             pass_thru = True
         #If runs here, it means no item has been found
         if pass_thru:
             if 'pass_wayup' in key_cbs:
-                key_cbs['pass_wayup'](pass_thru,ret_node)
+                ret_node = key_cbs['pass_wayup'](pass_thru,from_node=ret_node,to_node=cur_root)
+                if root_now == 1:
+                    self.root = ret_node
         else:
             if 'miss_cb' in key_cbs:
                 key_cbs['miss_cb'](ret_node)
@@ -49,12 +55,14 @@ class BSTree:
                     sel_node = node['right']
             sel_node['repeat'] = 1
             sel_node['count'] = 1
-        def add_pass_cb(result,node):
-            node['count'] = 1
-            if 'left' in node:
-                node['count'] = node['left']['count']
-            if 'right' in node:
-                node['count'] += node['right']['count']
+        def add_pass_cb(result,**kargs):
+            from_node = kargs['from_node']
+            from_node['count'] = 1
+            if 'left' in from_node:
+                from_node['count'] = from_node['left']['count']
+            if 'right' in from_node:
+                from_node['count'] += from_node['right']['count']
+            return from_node
         self.search(node_key,hit_cb=add_hit_cb,miss_cb=add_miss_cb,pass_wayup=add_pass_cb)
 
     def travese(self,cur_root = None,**kargs):
@@ -160,6 +168,9 @@ class LLRB_BSTree(BSTree):
             cur_root['left'] = child['right']
         child['right'] = cur_root
 
+        child['red'] = cur_root['red']
+        cur_root['red'] = 1
+
         #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         #"count" Must be DEALT WITH
         child["count"] = cur_root["count"]
@@ -182,6 +193,9 @@ class LLRB_BSTree(BSTree):
         else:
             cur_root["right"] = child["left"]
         child["left"] = cur_root
+
+        child['red'] = cur_root['red']
+        cur_root['red'] = 1
 
         #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         #"count" Must be DEALT WITH
@@ -217,12 +231,14 @@ class LLRB_BSTree(BSTree):
             sel_node['repeat'] = 1
             sel_node['count'] = 1
             sel_node['red'] = 1
-        def llrb_add_pass_cb(result,node):
-            node['count'] = 1
-            if 'left' in node:
-                node['count'] = node['left']['count']
-            if 'right' in node:
-                node['count'] += node['right']['count']
+        def llrb_add_pass_cb(result,**kargs):
+            from_node = kargs['from_node']
+            to_node = kargs['to_node']
+            from_node['count'] = 1
+            if 'left' in from_node:
+                from_node['count'] = from_node['left']['count']
+            if 'right' in from_node:
+                from_node['count'] += from_node['right']['count']
 
             #In 3-node of a 2-3 tree, we set the children of three sub-nodes as number 0 1 2 as the following:
             #                     |
@@ -238,19 +254,20 @@ class LLRB_BSTree(BSTree):
             #   /                    \
             # node                   node
             patn0_exists = 0
-            if 'left' in node:
-                if 'left' in node['left']:
+            if 'left' in to_node:
+                if 'left' in to_node['left']:
                     patn0_exists = 1
 
             #Pattern 1
-            if self.is_red(node,'right') and not self.is_red(node,'left'):
-                self.rotate_left(node)
+            if self.is_red(to_node,'right') and not self.is_red(to_node,'left'):
+                to_node = self.rotate_left(to_node)
             #Pattern 0
-            if patn0_exists == 1 and self.self.is_red(node,'left') and self.is_red(node['left'],'left'):
-                self.rotate_right(node)
+            if patn0_exists == 1 and self.is_red(to_node,'left') and self.is_red(to_node['left'],'left'):
+                to_node = self.rotate_right(to_node)
             #Pattern 2
-            if self.is_red(node,'left') and self.is_red(node,'right'):
-                self.flipcolor(node)
+            if self.is_red(to_node,'left') and self.is_red(to_node,'right'):
+                self.flipcolor(to_node)
+            return to_node
 
         self.search(node_key,hit_cb=llrb_add_hit_cb,miss_cb=llrb_add_miss_cb,pass_wayup=llrb_add_pass_cb)
         self.root['red'] = 0#!!! Set Root to Black
